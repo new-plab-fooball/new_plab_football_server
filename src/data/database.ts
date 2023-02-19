@@ -6,9 +6,27 @@ const pool = mysql.createPool({
   user: 'toy_squad_sjw',
   database: 'toy_squad_sjw',
   password: 'fkdlvmf42%%',
+  waitForConnections: true,
+  connectionLimit: 1000,
+  queueLimit: 1000,
 });
 
 export const db = pool.promise();
+
+export const execute = async <T>(query: T) => {
+  const conn = await db.getConnection(async <T>(conn: T) => conn);
+  await conn.beginTransaction();
+  try {
+      const [rows, fields] = await conn.execute(query);
+      await conn.commit();
+      return rows;
+  } catch (err) {
+      await conn.rollback();
+      throw err;
+  } finally {
+      conn.release();
+  }
+}
 
 export const sql_key_generater = (
   keys_array: string[],
