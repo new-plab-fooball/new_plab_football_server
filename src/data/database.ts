@@ -13,6 +13,21 @@ const pool = mysql.createPool({
 
 export const db = pool.promise();
 
+export const execute = async <T>(query: T) => {
+  const conn = await db.getConnection(async <T>(conn: T) => conn);
+  await conn.beginTransaction();
+  try {
+      const [rows, fields] = await conn.execute(query);
+      await conn.commit();
+      return rows;
+  } catch (err) {
+      await conn.rollback();
+      throw err;
+  } finally {
+      conn.release();
+  }
+}
+
 export const sql_key_generater = (
   keys_array: string[],
   type: 'insert' | 'select'
