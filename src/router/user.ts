@@ -6,8 +6,12 @@ import {
   readDataBase,
   readDataBaseJoin,
 } from '../data/database';
+//import getUser from '../controller/userController';
+const getUser = require('../controller/userController');
 
 const userRouter = express.Router();
+
+userRouter.get('/', getUser);
 
 userRouter.post('/', async (req: Request, res: Response) => {
   const to_db = {

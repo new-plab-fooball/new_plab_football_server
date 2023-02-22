@@ -1,4 +1,6 @@
-const mysql =  require('mysql2');
+import mysql from 'mysql2';
+
+type Data = Promise<mysql.RowDataPacket[] | mysql.RowDataPacket[][] | mysql.OkPacket | mysql.OkPacket[] | mysql.ResultSetHeader>;
 
 const pool = mysql.createPool({
   host: 'toy-squad.c5rdqt8esadj.ap-northeast-2.rds.amazonaws.com',
@@ -13,8 +15,8 @@ const pool = mysql.createPool({
 
 export const db = pool.promise();
 
-export const execute = async <T>(query: T) => {
-  const conn = await db.getConnection(async <T>(conn: T) => conn);
+export const execute = async (query: string): Data => {
+  const conn = await db.getConnection();
   await conn.beginTransaction();
   try {
       const [rows, fields] = await conn.execute(query);
@@ -27,6 +29,13 @@ export const execute = async <T>(query: T) => {
       conn.release();
   }
 }
+
+
+
+
+
+
+
 
 export const sql_key_generater = (
   keys_array: string[],
