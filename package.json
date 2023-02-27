@@ -38,7 +38,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.261.0",
     "@google-cloud/storage": "^6.7.0",
-    "aws-sdk": "^2.1304.0",
+    "aws-sdk": "^2.1318.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "jsonwebtoken": "^8.5.1",
