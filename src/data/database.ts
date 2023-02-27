@@ -15,11 +15,11 @@ const pool = mysql.createPool({
 
 export const db = pool.promise();
 
-export const execute = async (query: string): Data => {
+export const execute = async  <T>(query: string, datas: T[]): Data => {
   const conn = await db.getConnection();
   await conn.beginTransaction();
   try {
-      const [rows, fields] = await conn.execute(query);
+      const [rows, fields] = await conn.execute(query,datas);
       await conn.commit();
       return rows;
   } catch (err) {
@@ -31,6 +31,22 @@ export const execute = async (query: string): Data => {
 }
 
 
+// function to set up the transaction
+export const transaction = async (queries: string[]) => {
+  const conn = await db.getConnection();
+  await conn.beginTransaction();
+  try {
+      for (let i = 0; i < queries.length; i++) {
+          await conn.execute(queries[i]);
+      }
+      await conn.commit();
+  } catch (err) {
+      await conn.rollback();
+      throw err;
+  } finally {
+      conn.release();
+  }
+}
 
 
 
