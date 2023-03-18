@@ -1,6 +1,6 @@
-import jwt from 'jsonwebtoken';
-import { Request } from 'express';
-const SECRET_KEY = 'BUCWEXFYH2J3K5N6P7R9SATCVD';
+import jwt from "jsonwebtoken";
+import { Request } from "express";
+const SECRET_KEY = "BUCWEXFYH2J3K5N6P7R9SATCVD";
 
 export const userInfo = (req: Request) => {
   let user;

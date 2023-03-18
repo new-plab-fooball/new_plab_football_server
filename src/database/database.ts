@@ -1,13 +1,19 @@
-import mysql from 'mysql2';
+import mysql from "mysql2";
 
-type Data = Promise<mysql.RowDataPacket[] | mysql.RowDataPacket[][] | mysql.OkPacket | mysql.OkPacket[] | mysql.ResultSetHeader>;
+type Data = Promise<
+  | mysql.RowDataPacket[]
+  | mysql.RowDataPacket[][]
+  | mysql.OkPacket
+  | mysql.OkPacket[]
+  | mysql.ResultSetHeader
+>;
 
 const pool = mysql.createPool({
-  host: 'toy-squad.c5rdqt8esadj.ap-northeast-2.rds.amazonaws.com',
+  host: "new-plab-football-database.c5rdqt8esadj.ap-northeast-2.rds.amazonaws.com",
   port: 3306,
-  user: 'toy_squad_sjw',
-  database: 'toy_squad_sjw',
-  password: 'fkdlvmf42%%',
+  user: "godboy4256",
+  database: "new_plab_football_database",
+  password: "fkdlvmf42%%",
   waitForConnections: true,
   connectionLimit: 1000,
   queueLimit: 1000,
@@ -15,61 +21,54 @@ const pool = mysql.createPool({
 
 export const db = pool.promise();
 
-export const execute = async  <T>(query: string, datas: T[]): Data => {
+export const execute = async <T>(query: string, datas: T[]): Data => {
   const conn = await db.getConnection();
   await conn.beginTransaction();
   try {
-      const [rows, fields] = await conn.execute(query,datas);
-      await conn.commit();
-      return rows;
+    const [rows, fields] = await conn.execute(query, datas);
+    await conn.commit();
+    return rows;
   } catch (err) {
-      await conn.rollback();
-      throw err;
+    await conn.rollback();
+    throw err;
   } finally {
-      conn.release();
+    conn.release();
   }
-}
+};
 
-
-// function to set up the transaction
 export const transaction = async (queries: string[]) => {
   const conn = await db.getConnection();
   await conn.beginTransaction();
   try {
-      for (let i = 0; i < queries.length; i++) {
-          await conn.execute(queries[i]);
-      }
-      await conn.commit();
+    for (let i = 0; i < queries.length; i++) {
+      await conn.execute(queries[i]);
+    }
+    await conn.commit();
   } catch (err) {
-      await conn.rollback();
-      throw err;
+    await conn.rollback();
+    throw err;
   } finally {
-      conn.release();
+    conn.release();
   }
-}
-
-
-
-
-
+};
 
 export const sql_key_generater = (
   keys_array: string[],
-  type: 'insert' | 'select'
+  type: "insert" | "select"
 ) => {
   const select_array = Array.isArray(keys_array)
     ? keys_array
     : Object.keys(keys_array);
-  if (type === 'insert') return `(${select_array.join(', ')})`;
-  else if (type === 'select') return `${select_array.join(', ')}`;
+  if (type === "insert") return `(${select_array.join(", ")})`;
+  else if (type === "select") return `${select_array.join(", ")}`;
 };
 
 export const sql_value_generater = (values_arr: string[]) => {
   return `(${Object.values(values_arr)
     .map((el) => {
-      return typeof el === 'string' ? `'${el}'` : el;
+      return typeof el === "string" ? `'${el}'` : el;
     })
-    .join(',')})`;
+    .join(",")})`;
 };
 
 export const sql_update_query = (update_obj: {}) => {
@@ -79,11 +78,11 @@ export const sql_update_query = (update_obj: {}) => {
   for (let i = 0; i < key_arr.length; i++) {
     answer.push(
       `${key_arr[i]}=${
-        typeof value_arr[i] === 'string' ? `'${value_arr[i]}'` : value_arr[i]
+        typeof value_arr[i] === "string" ? `'${value_arr[i]}'` : value_arr[i]
       }`
     );
   }
-  return answer.join(' , ');
+  return answer.join(" , ");
 };
 
 export const sql_join_query = (join_obj: any, ons: string[]) => {
@@ -95,7 +94,7 @@ export const sql_join_query = (join_obj: any, ons: string[]) => {
         `${Object.keys(join_obj)[i]}.${
           join_obj[Object.keys(join_obj)[i]][j]
         } as ${
-          Object.keys(join_obj)[i] + '_' + join_obj[Object.keys(join_obj)[i]][j]
+          Object.keys(join_obj)[i] + "_" + join_obj[Object.keys(join_obj)[i]][j]
         }`
       );
     }
@@ -105,11 +104,11 @@ export const sql_join_query = (join_obj: any, ons: string[]) => {
       ons[i]
     } `;
   }
-  return [answer.join(' , '), join_qurey];
+  return [answer.join(" , "), join_qurey];
 };
 
 export const createDataBase = (table_name: string, to_db: any) => {
-  const keysQuery = sql_key_generater(to_db, 'insert');
+  const keysQuery = sql_key_generater(to_db, "insert");
   const valuestQuery = sql_value_generater(to_db);
   return db.execute(
     `INSERT INTO ${table_name} ${keysQuery} VALUES ${valuestQuery}`
@@ -118,18 +117,18 @@ export const createDataBase = (table_name: string, to_db: any) => {
 
 export const readDataBase = (
   table_name: string,
-  to_db: string[] | 'all',
+  to_db: string[] | "all",
   where?: string | null,
   limit?: string
 ) => {
   return db.execute(
     `SELECT ${
-      typeof to_db === 'object'
-        ? sql_key_generater(to_db, 'select')
-        : to_db === 'all' && '*'
+      typeof to_db === "object"
+        ? sql_key_generater(to_db, "select")
+        : to_db === "all" && "*"
     } FROM ${table_name} 
-    ${where ? `WHERE ${where}` : ''} 
-    ${limit ? `LIMIT ${limit}` : ''}`
+    ${where ? `WHERE ${where}` : ""} 
+    ${limit ? `LIMIT ${limit}` : ""}`
   );
 };
 
