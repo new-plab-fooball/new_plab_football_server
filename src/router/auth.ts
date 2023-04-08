@@ -1,5 +1,10 @@
 import express, { Request, Response } from "express";
-import { createDataBase, readDataBase } from "../database/database";
+import {
+  createDataBase,
+  deleteDataBase,
+  readDataBase,
+  updateDataBase,
+} from "../database/database";
 import { emailSend, authNumGenerater } from "../utils/send_email";
 import bycript from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -46,6 +51,7 @@ authRouter.post("/signup_email", async (req: Request, res: Response) => {
   const to_db = {
     email: req.body.email,
     auth_num,
+    is_auth: 0,
   };
   try {
     emailSend(
@@ -67,6 +73,47 @@ authRouter.post("/signup_email", async (req: Request, res: Response) => {
       message: "인증 메일 전송에 실패했습니다.",
     });
   }
+});
+
+authRouter.post("/done", async (req, res) => {
+  try {
+    const db_email_auth = await readDataBase(
+      "email_auth",
+      ["auth_num", "email"],
+      `email="${req.body.email}"`
+    );
+    if (db_email_auth[0][0].auth_num === req.body.auth_num) {
+      await updateDataBase(
+        "email_auth",
+        { is_auth: 1 },
+        `email='${req.body.email}'`
+      );
+      return res.status(200).json({
+        result: true,
+        message:
+          "이메일 인증이 성공적으로 완료되었습니다. 다음 정보를 기입해주세요.",
+      });
+    } else {
+      return res.status(200).json({
+        result: false,
+        message: "인증번호를 다시 확인해주세요.",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({
+      result: false,
+      message: "인증에 실패했습니다.",
+    });
+  }
+});
+
+authRouter.delete("/timeout", async (req, res) => {
+  await deleteDataBase("email_auth", `email='${req.body.email}'`);
+  return res.status(200).json({
+    result: false,
+    message: "시간이 초과되었습니다.",
+  });
 });
 
 authRouter.get("/logout", (_, res) => {
