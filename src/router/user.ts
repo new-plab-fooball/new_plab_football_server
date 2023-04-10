@@ -4,14 +4,12 @@ import {
   createDataBase,
   deleteDataBase,
   readDataBase,
-  readDataBaseJoin,
 } from "../database/database";
-import axios from "axios";
-// import { getUser } from "../controller/userController";
+import { getUser } from "../controller/userController";
 
 const userRouter = express.Router();
 
-// userRouter.get("/", getUser);
+userRouter.get("/", getUser);
 
 userRouter.post("/", async (req: Request, res: Response) => {
   const to_db = {

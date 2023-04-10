@@ -9,6 +9,7 @@ import { emailSend, authNumGenerater } from "../utils/send_email";
 import bycript from "bcrypt";
 import jwt from "jsonwebtoken";
 import { signUpAuthNumHTML } from "../public/html_gen/signup_auth";
+import { getUser } from "../controller/userController";
 const authRouter = express.Router();
 
 const SECRET_KEY = "BUCWEXFYH2J3K5N6P7R9SATCVD";
@@ -16,20 +17,32 @@ const SECRET_KEY = "BUCWEXFYH2J3K5N6P7R9SATCVD";
 authRouter.post("/login", async (req: Request, res: Response) => {
   const result: any = await readDataBase(
     "user",
-    ["id", "email", "password", "name"],
+     "all",
     `email='${req.body.email}'`
   );
   const fullReselt = result[0][0];
   if (fullReselt) {
     if (bycript.compareSync(req.body.password, fullReselt.password)) {
       const accessToken = jwt.sign(
-        { id: fullReselt.id, email: fullReselt.email, name: fullReselt.name },
+        { id: fullReselt.id },
         SECRET_KEY
       );
       res.cookie("accessToken", accessToken);
       return res.status(200).json({
         result: true,
         message: `로그인 되었습니다. ${fullReselt.name} 님 환영합니다.`,
+        user: {
+          name:fullReselt.name,
+          email:fullReselt.email,
+          position:fullReselt.position,
+          play_type:fullReselt.play_type,
+          contact:fullReselt.contact,
+          point:fullReselt.point,
+          level:fullReselt.level,
+          tags:fullReselt.tags,
+          location:fullReselt.location,
+          gender:fullReselt.gender,
+        },
         accessToken,
       });
     } else {
